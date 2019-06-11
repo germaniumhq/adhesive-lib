@@ -1,3 +1,5 @@
+from typing import Optional
+
 import adhesive
 from adhesive.workspace import docker
 import textwrap
@@ -47,7 +49,7 @@ tools = {
 }
 
 
-@adhesive.task(r"^Ensure Tooling:\s+(.+)$")
+#@adhesive.task(r"^Ensure Tooling:\s+(.+)$")
 def ensure_tooling(context, tool_name) -> None:
     w = context.workspace
 
@@ -56,12 +58,14 @@ def ensure_tooling(context, tool_name) -> None:
         w.run(f"docker build -t germaniumhq/tools-{tool_name}:latest .")
 
 
-@adhesive.task("^Run Tool: (.*?)$")
-def run_tool(context, command: str) -> None:
+#@adhesive.task("^Run Tool: (.*?)$")
+def run_tool(context,
+             command: str,
+             capture_stdout: Optional[bool] = None) -> str:
     tool_name = command.split(" ")[0]
 
     with docker.inside(context.workspace,
                        f"germaniumhq/tools-{tool_name}",
                        extra_docker_params="-v /var/run/docker.sock:/var/run/docker.sock") as w:
-        w.run(command)
+        return w.run(command, capture_stdout=capture_stdout)
 
