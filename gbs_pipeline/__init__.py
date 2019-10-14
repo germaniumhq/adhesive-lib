@@ -10,6 +10,17 @@ def checkout_code(context) -> None:
     scm.checkout(context.workspace)
 
 
+@adhesive.task(r"^Ensure Tooling:\s+(.+)$")
+def ensure_tooling(context, tool_name) -> None:
+    ge_tooling.ensure_tooling(context, tool_name)
+
+
+@adhesive.task("^Run Tool: (.*?)$")
+def run_tool(context,
+             command: str) -> str:
+    ge_tooling.run_tool(context, command)
+
+
 @adhesive.task("Fetch Base Images")
 def fetch_base_images(context) -> None:
     pass

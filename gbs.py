@@ -4,6 +4,62 @@ from typing import Optional
 from adhesive.workspace.Workspace import Workspace
 
 
+def prepare(workspace: Workspace,
+            platform: str,
+            tag: Optional[str]=None,
+            gbs_prefix: Optional[str]=None) -> str:
+
+    gbs_prefix = "/" if not gbs_prefix else gbs_prefix
+
+    template = textwrap.dedent(f"""\
+        FROM germaniumhq/{platform}
+
+        #======================================
+        # Install prerequisite software
+        #======================================
+        USER root
+
+        COPY --chown=germanium:germanium {gbs_prefix}_gbs/install-software /src{gbs_prefix}_gbs/install-software
+        RUN echo "################################################################################" &&\
+            echo "# INSTALL SOFTWARE" && \
+            echo "################################################################################" &&\
+            cd /src && \
+            /src{gbs_prefix}_gbs/install-software/install-software.sh &&\
+            chown -R germanium:germanium /src
+
+        #======================================
+        # Prepare dependencies for download
+        #======================================
+        USER germanium
+
+        # build1
+        COPY --chown=germanium:germanium {gbs_prefix}_gbs/prepare-build1 /src{gbs_prefix}_gbs/prepare-build1
+        RUN echo "################################################################################" &&\
+            echo "# PREPARE BUILD 1" && \
+            echo "################################################################################" &&\
+            cd /src && \
+            /src{gbs_prefix}_gbs/prepare-build1/prepare-build1.sh
+
+        # build2
+        COPY --chown=germanium:germanium {gbs_prefix}_gbs/prepare-build2 /src{gbs_prefix}_gbs/prepare-build2
+        RUN echo "################################################################################" &&\
+            echo "# PREPARE BUILD 2" && \
+            echo "################################################################################" &&\
+            cd /src && \
+            /src{gbs_prefix}_gbs/prepare-build2/prepare-build2.sh
+
+        # build3
+        COPY --chown=germanium:germanium {gbs_prefix}_gbs/prepare-build3 /src{gbs_prefix}_gbs/prepare-build3
+        RUN echo "################################################################################" &&\
+            echo "# PREPARE BUILD 3" && \
+            echo "################################################################################" &&\
+            cd /src && \
+            /src{gbs_prefix}_gbs/prepare-build3/prepare-build3.sh
+        """)
+
+    return build_docker_image(workspace, template, tag)
+
+
 def test(workspace: Workspace,
          platform: str,
          tag: Optional[str]=None,
