@@ -1,10 +1,9 @@
 import textwrap
 import uuid
 from typing import Optional
-from adhesive.workspace.Workspace import Workspace
 
 
-def prepare(workspace: Workspace,
+def prepare(context,
             platform: str,
             tag: Optional[str]=None,
             gbs_prefix: Optional[str]=None) -> str:
@@ -57,10 +56,10 @@ def prepare(workspace: Workspace,
             /src{gbs_prefix}_gbs/prepare-build3/prepare-build3.sh
         """)
 
-    return build_docker_image(workspace, template, tag)
+    return build_docker_image(context, template, tag)
 
 
-def test(workspace: Workspace,
+def test(context,
          platform: str,
          tag: Optional[str]=None,
          gbs_prefix: Optional[str]=None) -> str:
@@ -132,9 +131,9 @@ def test(workspace: Workspace,
 
         """)
 
-    return build_docker_image(workspace, template, tag)
+    return build_docker_image(context, template, tag)
 
-def build(workspace: Workspace,
+def build(context,
           platform: str,
           tag: Optional[str]=None,
           gbs_prefix: Optional[str]=None) -> str:
@@ -195,29 +194,29 @@ def build(workspace: Workspace,
             cd /src && \
             /src{gbs_prefix}_gbs/run-build.sh
         """)
-    return build_docker_image(workspace, template, tag)
+    return build_docker_image(context, template, tag)
 
 
 def build_docker_image(
-        workspace: Workspace,
+        context,
         template: str,
         tag: Optional[str]=None) -> str:
     """ Build a new docker image """
     # FIXME: probably a better temp file/folder creation is needed
     filename = f"/tmp/Dockerfile.{str(uuid.uuid4())}"
     try:
-        workspace.write_file(filename, template)
+        context.workspace.write_file(filename, template)
 
         if tag:
-            return workspace.run(
+            return context.workspace.run(
                 f"docker build -q -t {tag} -f {filename} .",
                 capture_stdout=True
             ).strip()
 
-        return workspace.run(
+        return context.workspace.run(
             f"docker build -q -f {filename} .",
             capture_stdout=True,
         ).strip()
     finally:
-        workspace.rm(filename)
+        context.workspace.rm(filename)
 
