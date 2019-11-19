@@ -55,7 +55,7 @@ def run_mypy(context):
     """)
 
 
-@adhesive.task('GBS Test')
+@adhesive.task('GBS Test {loop.value.name}')
 def gbs_test(context):
     binary: BinaryDefinition = context.loop.value
     gbs.test(context,
