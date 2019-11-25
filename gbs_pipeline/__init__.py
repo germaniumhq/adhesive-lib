@@ -73,6 +73,12 @@ def push_containers(context) -> None:
 
 
 def pipeline_build_gbs_images(config):
+    if 'build_containers' not in config:
+        config['build_containers'] = dict()
+
+    if 'base_containers' not in config:
+        config['base_containers'] = dict()
+
     adhesive.process_start()\
         .branch_start()\
             .task("Checkout Code")\
@@ -85,10 +91,10 @@ def pipeline_build_gbs_images(config):
             .task("Collect Images to Push")\
         .branch_end()\
         .subprocess_start("Base Images")\
-            .task("Create Base Image Image {loop.key}", loop="data.base_containers")\
+            .task("Create Base Image Image {loop.key}", loop="base_containers")\
         .subprocess_end()\
         .subprocess_start("Base Images")\
-            .task("Create Build Image Image {loop.key}", loop="data.build_containers")\
+            .task("Create Build Image Image {loop.key}", loop="build_containers")\
         .subprocess_end()\
         .task("Run Tool: behave")\
         .task("Push Image {loop.value}", loop="containers_to_push")\
