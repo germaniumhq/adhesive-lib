@@ -9,7 +9,7 @@ tools = {
     "mypy": textwrap.dedent("""\
         FROM germaniumhq/python:3.7
         ENV REFRESHED_AT 2018.10.14-06:56:31
-        RUN pip install mypy
+        RUN pip install mypy mypy_extensions
         """),
 
     "ansible": textwrap.dedent("""\

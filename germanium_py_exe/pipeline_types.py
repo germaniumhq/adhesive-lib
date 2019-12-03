@@ -1,6 +1,7 @@
 from typing import Dict, Union, List
 from mypy_extensions import TypedDict
 
+
 class BinaryDefinitionRequired(TypedDict):
     name: str
     platform: str

@@ -50,7 +50,7 @@ def run_mypy(context):
     # _adhesive build itself, since that would be checked by adhesive
     # itself
     ge_tooling.run_tool(context, tool="mypy", command="""
-        export MYPYPATH=./stubs
+        export MYPYPATH=./stubs:.
         mypy --shadow-file _adhesive.py setup.py .
     """)
 
