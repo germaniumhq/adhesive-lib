@@ -26,9 +26,8 @@ def is_changed_repo(context) -> bool:
     Checks if the current repository has changed files
     """
 
-    changed_files: str = context.workspace.run("""
-        git diff-index --quiet HEAD --
-    """, capture_stdout=True)
+    changed_files: str = context.workspace.run_output("""
+        git diff-index HEAD --
+    """)
 
-    return changed_files.strip()
-
+    return not not changed_files.strip()

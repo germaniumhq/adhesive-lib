@@ -17,7 +17,7 @@ def prepare_build(context):
 
 @adhesive.task('Checkout Code')
 def checkout_code(context):
-	scm.checkout(context.workspace)
+    scm.checkout(context.workspace)
 
 
 @adhesive.task(re='Ensure tool: (.*)')

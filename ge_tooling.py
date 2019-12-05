@@ -49,7 +49,6 @@ tools = {
 }
 
 
-#@adhesive.task(r"^Ensure Tooling:\s+(.+)$")
 def ensure_tooling(context, tool_name) -> None:
     w = context.workspace
 
@@ -58,7 +57,6 @@ def ensure_tooling(context, tool_name) -> None:
         w.run(f"docker build -t germaniumhq/tools-{tool_name}:latest .")
 
 
-#@adhesive.task("^Run Tool: (.*?)$")
 def run_tool(context,
              *,
              tool: str,
@@ -76,4 +74,3 @@ def image_name(tool: str) -> str:
     Returns the docker image name for a tool
     """
     return f"germaniumhq/tools-{tool}"
-
