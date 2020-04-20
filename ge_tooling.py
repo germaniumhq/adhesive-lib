@@ -3,6 +3,9 @@ from typing import Optional
 import adhesive
 from adhesive.workspace import docker
 import textwrap
+import logging
+
+LOG = logging.getLogger(__name__)
 
 
 tools = {
@@ -20,8 +23,14 @@ tools = {
 
     "flake8": textwrap.dedent("""\
         FROM germaniumhq/python:3.7
-        ENV REFRESHED_AT 2018.10.14-06:56:31
+        ENV REFRESHED_AT 2020-04-20-17:21:47
         RUN pip install flake8
+    """),
+
+    "black": textwrap.dedent("""\
+        FROM germaniumhq/python:3.7
+        ENV REFRESHED_AT 2020-04-20-17:21:27
+        RUN pip install black
     """),
 
     "python": textwrap.dedent("""\
@@ -44,13 +53,17 @@ tools = {
     """),
 
     "version-manager": textwrap.dedent("""\
-        FROM bmst/version-manager:2.5.0
+        FROM germaniumhq/python:3.7
+        RUN pip install vm==2.5.1
     """)
 }
 
 
 def ensure_tooling(context, tool_name) -> None:
     w = context.workspace
+
+    if tool_name == "flake8":
+        LOG.warning("flake8 is deprecated as a tool. Use black.")
 
     with w.temp_folder():
         w.write_file("Dockerfile", tools[tool_name])

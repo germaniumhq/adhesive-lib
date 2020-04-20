@@ -7,7 +7,7 @@ import ge_tooling
 from adhesive.workspace import docker
 import gbs
 
-from .pipeline_types import BinaryDefinition
+from germanium_py_exe.pipeline_types import BinaryDefinition
 
 
 @adhesive.task('Prepare build')
@@ -52,6 +52,13 @@ def run_mypy(context):
     ge_tooling.run_tool(context, tool="mypy", command="""
         export MYPYPATH=./stubs:.
         mypy --shadow-file _adhesive.py setup.py .
+    """)
+
+
+@adhesive.task('Run black')
+def run_black(context):
+    ge_tooling.run_tool(context, tool="black", command="""
+        black --check .
     """)
 
 

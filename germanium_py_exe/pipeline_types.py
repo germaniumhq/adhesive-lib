@@ -21,6 +21,5 @@ class PipelineConfigRequired(TypedDict):
 class PipelineConfig(PipelineConfigRequired, total=False):
     run_flake8: bool
     run_mypy: bool
-    repo: Union[List[str], str]
     version_manager: str
 
