@@ -21,5 +21,6 @@ class PipelineConfigRequired(TypedDict):
 class PipelineConfig(PipelineConfigRequired, total=False):
     run_flake8: bool
     run_mypy: bool
+    run_black: bool
     version_manager: str
 

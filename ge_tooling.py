@@ -30,7 +30,7 @@ tools = {
     "black": textwrap.dedent("""\
         FROM germaniumhq/python:3.7
         ENV REFRESHED_AT 2020-04-20-17:21:27
-        RUN pip install black
+        RUN pip install black==20.8b1
     """),
 
     "python": textwrap.dedent("""\
