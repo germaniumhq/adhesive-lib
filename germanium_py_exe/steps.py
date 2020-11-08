@@ -63,10 +63,20 @@ def run_black(context):
 
 
 @adhesive.task('GBS Test {loop.value.name}')
-def gbs_test(context):
+def gbs_test(context: adhesive.Token):
     binary: BinaryDefinition = context.loop.value
-    gbs.test(context,
-             platform=binary.platform)
+    image_name = gbs.test(context,
+                          platform=binary.platform)
+
+    # if we don't have gbs-test.py we're done
+    try:
+        context.workspace.run("ls gbs-test.py")
+    except Exception:
+        return
+
+    # if we do, we launch it
+    context.workspace.run(f"python gbs-test.py {image_name}")
+
 
 
 @adhesive.task('GBS Build {loop.value.name}')

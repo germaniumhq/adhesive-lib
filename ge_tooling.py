@@ -10,35 +10,35 @@ LOG = logging.getLogger(__name__)
 
 tools = {
     "mypy": textwrap.dedent("""\
-        FROM germaniumhq/python:3.7
+        FROM germaniumhq/python:3.8
         ENV REFRESHED_AT 2018.10.14-06:56:31
-        RUN pip install mypy mypy_extensions
+        RUN pip install mypy mypy_extensions grpc_stubs adhesive
         """),
 
     "ansible": textwrap.dedent("""\
-        FROM germaniumhq/python:3.7
+        FROM germaniumhq/python:3.8
         ENV REFRESHED_AT 2018.10.14-06:58:16
         RUN pip install ansible
     """),
 
     "flake8": textwrap.dedent("""\
-        FROM germaniumhq/python:3.7
+        FROM germaniumhq/python:3.8
         ENV REFRESHED_AT 2020-04-20-17:21:47
         RUN pip install flake8
     """),
 
     "black": textwrap.dedent("""\
-        FROM germaniumhq/python:3.7
+        FROM germaniumhq/python:3.8
         ENV REFRESHED_AT 2020-04-20-17:21:27
         RUN pip install black==20.8b1
     """),
 
     "python": textwrap.dedent("""\
-        FROM germaniumhq/python:3.7
+        FROM germaniumhq/python:3.8
     """),
 
     "behave": textwrap.dedent("""\
-        FROM python:3.7
+        FROM python:3.8
 
         RUN pip install behave
         RUN curl https://get.docker.com | sh
@@ -53,7 +53,7 @@ tools = {
     """),
 
     "version-manager": textwrap.dedent("""\
-        FROM germaniumhq/python:3.7
+        FROM germaniumhq/python:3.8
         RUN pip install vm==2.5.1
     """)
 }
