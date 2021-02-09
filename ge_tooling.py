@@ -12,7 +12,7 @@ tools = {
     "mypy": textwrap.dedent("""\
         FROM germaniumhq/python:3.8
         ENV REFRESHED_AT 2018.10.14-06:56:31
-        RUN pip install mypy mypy_extensions grpc_stubs adhesive
+        RUN pip install mypy mypy_extensions grpc_stubs adhesive fastapi
         """),
 
     "ansible": textwrap.dedent("""\

@@ -1,4 +1,5 @@
 from typing import Optional
+import subprocess
 import re
 
 
@@ -31,3 +32,17 @@ def is_changed_repo(context) -> bool:
     """)
 
     return not not changed_files.strip()
+
+
+def is_release(version: Optional[str] = None) -> bool:
+    if version is None:
+        version = read_current_version_using_version_manager()
+
+    return get_tag_version(version) == version
+
+
+def read_current_version_using_version_manager() -> str:
+    return subprocess.check_output([
+        "vm", "-t",
+    ], encoding='utf-8').strip()
+
