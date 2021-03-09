@@ -22,5 +22,10 @@ class PipelineConfig(PipelineConfigRequired, total=False):
     run_flake8: bool
     run_mypy: bool
     run_black: bool
+    run_version_manager: bool
     version_manager: str
+
+
+class PipelineToken:
+    build: PipelineConfig
 

@@ -1,9 +1,9 @@
+import logging
+import textwrap
 from typing import Optional
 
 import adhesive
 from adhesive.workspace import docker
-import textwrap
-import logging
 
 LOG = logging.getLogger(__name__)
 
@@ -70,11 +70,15 @@ def ensure_tooling(context, tool_name) -> None:
         w.run(f"docker build -t germaniumhq/tools-{tool_name}:latest .")
 
 
-def run_tool(context,
+def run_tool(context: adhesive.Token,
              *,
              tool: str,
              command: str,
-             capture_stdout: Optional[bool] = None) -> str:
+             capture_stdout: Optional[bool] = None,
+             pwd: str = None) -> str:
+    if pwd:
+        context.workspace.pwd = pwd
+
     with docker.inside(
             context.workspace,
             f"germaniumhq/tools-{tool}",

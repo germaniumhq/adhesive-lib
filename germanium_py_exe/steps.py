@@ -1,13 +1,17 @@
-import adhesive
-from adhesive.secrets import secret
+import os
 import re
-import ge_git
-from adhesive import scm
-import ge_tooling
-from adhesive.workspace import docker
-import gbs
 
-from germanium_py_exe.pipeline_types import BinaryDefinition
+import adhesive
+from adhesive import scm
+from adhesive.secrets import secret
+from adhesive.workspace import docker
+
+import gbs
+import ge_git
+import ge_tooling
+from germanium_py_exe.pipeline_types import BinaryDefinition, PipelineConfig, PipelineToken
+
+cwd = os.path.abspath(os.curdir)
 
 
 @adhesive.task('Prepare build')
@@ -78,7 +82,6 @@ def gbs_test(context: adhesive.Token):
     context.workspace.run(f"python gbs-test.py {image_name}")
 
 
-
 @adhesive.task('GBS Build {loop.value.name}')
 def gbs_build(context):
     binary: BinaryDefinition = context.loop.value
@@ -86,16 +89,26 @@ def gbs_build(context):
 
 
 @adhesive.gateway('Is release version?')
-def is_release_version_(context):
-    current_version = ge_tooling.run_tool(
-        context,
-        tool="version-manager",
-        command="version-manager --tag",
-        capture_stdout=True).strip()
+def is_release_version_(context: adhesive.Token[PipelineToken]):
+    print(f"run vm: {context.data.build.run_version_manager}")
 
-    current_branch = context.workspace.run("""
-        git rev-parse --abbrev-ref HEAD
-    """, capture_stdout=True).strip()
+    if context.data.build.run_version_manager:
+        current_version = ge_tooling.run_tool(
+            context,
+            tool="version-manager",
+            command="version-manager --tag",  # this uses git to fetch info
+            capture_stdout=True).strip()
+
+        current_branch = context.workspace.run("""
+            git rev-parse --abbrev-ref HEAD
+        """, capture_stdout=True).strip()
+    else:
+        current_version = ge_tooling.run_tool(
+            context,
+            tool="version-manager",
+            command="version-manager --display latest",
+            capture_stdout=True).strip()
+        current_branch = "master"
 
     context.data.release_version = ge_git.get_tag_version(current_version)
     context.data.master_branch = ge_git.is_master_branch(current_branch)
@@ -155,6 +168,9 @@ def parse_url(url: str) -> str:
 
 @adhesive.task('Push sources + tags to {loop.value}')
 def push_sources_tags_to_loop_value_(context):
+    print("remove me")
+    return
+
     git_url = context.loop.value
     server_name = parse_url(git_url)
 
