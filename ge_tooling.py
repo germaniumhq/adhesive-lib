@@ -54,7 +54,7 @@ tools = {
 
     "version-manager": textwrap.dedent("""\
         FROM germaniumhq/python:3.8
-        RUN pip install vm==2.5.1
+        RUN pip install vm==2021.03.5
     """)
 }
 
