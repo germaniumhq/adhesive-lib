@@ -11,14 +11,17 @@ def pipeline(build: PipelineConfig) -> None:
 
     build_data = addict.Dict(build)
 
-    if not "run_mypy" in build_data:
+    if "run_mypy" not in build_data:
         build_data.run_mypy = True
 
-    if not "run_flake8" in build_data:
+    if "run_flake8" not in build_data:
         build_data.run_flake8 = True
 
-    if not "run_black" in build_data:
+    if "run_black" not in build_data:
         build_data.run_black = True
+
+    if "run_version_manager" not in build_data:
+        build_data.run_version_manager = True
 
     if build_data.repo and not isinstance(build_data.repo, list):
         build_data.repo = [ build_data.repo ]

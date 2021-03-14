@@ -90,8 +90,6 @@ def gbs_build(context):
 
 @adhesive.gateway('Is release version?')
 def is_release_version_(context: adhesive.Token[PipelineToken]):
-    print(f"run vm: {context.data.build.run_version_manager}")
-
     if context.data.build.run_version_manager:
         current_version = ge_tooling.run_tool(
             context,
