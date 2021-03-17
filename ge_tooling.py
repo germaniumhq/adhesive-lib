@@ -1,4 +1,5 @@
 import logging
+import shlex
 import textwrap
 from typing import Optional
 
@@ -11,7 +12,7 @@ LOG = logging.getLogger(__name__)
 tools = {
     "mypy": textwrap.dedent("""\
         FROM germaniumhq/python:3.8
-        ENV REFRESHED_AT 2018.10.14-06:56:31
+        ENV REFRESHED_AT 2021.03.16
         RUN pip install mypy mypy_extensions grpc_stubs adhesive fastapi
         """),
 
@@ -65,6 +66,8 @@ def ensure_tooling(context, tool_name) -> None:
     if tool_name == "flake8":
         LOG.warning("flake8 is deprecated as a tool. Use black.")
 
+    print(f"Tool docker: {tools[tool_name]}")
+
     with w.temp_folder():
         w.write_file("Dockerfile", tools[tool_name])
         w.run(f"docker build -t germaniumhq/tools-{tool_name}:latest .")
@@ -75,14 +78,22 @@ def run_tool(context: adhesive.Token,
              tool: str,
              command: str,
              capture_stdout: Optional[bool] = None,
+             mount: str = None,
              pwd: str = None) -> str:
     if pwd:
         context.workspace.pwd = pwd
 
+    extra_docker_params = "-v /var/run/docker.sock:/var/run/docker.sock"
+
+    # Implicitly the pwd gets mounted. Instead we want the mount folder
+    # that should include the pwd to be mounted.
+    if mount:
+        extra_docker_params += f" -v {shlex.quote(mount + ':' + mount)}"
+
     with docker.inside(
             context.workspace,
             f"germaniumhq/tools-{tool}",
-            extra_docker_params="-v /var/run/docker.sock:/var/run/docker.sock") as w:
+            extra_docker_params=extra_docker_params) as w:
         return w.run(command, capture_stdout=capture_stdout)
 
 

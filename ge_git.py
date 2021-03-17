@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 import subprocess
 import re
@@ -8,6 +9,25 @@ TAG_VERSION = re.compile("^\\d+\\.\\d+(\\.\\d+)?$")
 
 def is_master_branch(version: str) -> bool:
     return version == "master"
+
+
+def find_parent_git_folder(start_path: str) -> str:
+    """
+    Finds the folder where the `.git` folder resides starting from the
+    given folder.
+    :return:
+    """
+    previous_path = path = os.path.abspath(start_path)
+
+    while not os.path.isdir(os.path.join(path, ".git")):
+        path = os.path.dirname(path)
+
+        if previous_path == path:
+            raise Exception(f"Unable to find a git folder in {start_path}")
+
+        previous_path = path
+
+    return path
 
 
 def get_tag_version(version: str) -> Optional[str]:
