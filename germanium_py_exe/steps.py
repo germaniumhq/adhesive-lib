@@ -9,9 +9,10 @@ from adhesive.workspace import docker
 import gbs
 import ge_git
 import ge_tooling
-from germanium_py_exe.pipeline_types import BinaryDefinition, PipelineConfig, PipelineToken
+from germanium_py_exe.pipeline_types import BinaryDefinition, PipelineToken
 
-cwd = os.path.abspath(os.curdir)
+current_folder = os.path.abspath(os.curdir)
+sources_folder = ge_git.find_parent_git_folder(current_folder)
 
 
 @adhesive.task('Prepare build')
@@ -31,14 +32,12 @@ def ensure_tool(context, tool_name: str) -> None:
 
 @adhesive.task('Run tool: version-manager')
 def run_tool_version_manager(context):
-    version_manager = context.data.build.version_manager
-
-    if not version_manager:
-        version_manager = ""
-
-    ge_tooling.run_tool(context, tool="version-manager", command=f"""
-        vm {version_manager}
-    """)
+    ge_tooling.run_tool(
+        context,
+        tool="version-manager",
+        command="version-manager",
+        mount=sources_folder,
+        pwd=current_folder)
 
 
 @adhesive.task('Run flake8')
@@ -91,15 +90,21 @@ def gbs_build(context):
 @adhesive.gateway('Is release version?')
 def is_release_version_(context: adhesive.Token[PipelineToken]):
     if context.data.build.run_version_manager:
+        context.workspace.pwd = current_folder
+
         current_version = ge_tooling.run_tool(
             context,
             tool="version-manager",
             command="version-manager --tag",  # this uses git to fetch info
-            capture_stdout=True).strip()
+            mount=sources_folder,
+            pwd=current_folder,
+            capture_stdout=True,).strip()
 
-        current_branch = context.workspace.run("""
-            git rev-parse --abbrev-ref HEAD
-        """, capture_stdout=True).strip()
+        current_branch = context.workspace.run(
+            """
+                git rev-parse --abbrev-ref HEAD
+            """,
+            capture_stdout=True).strip()
     else:
         current_version = ge_tooling.run_tool(
             context,
