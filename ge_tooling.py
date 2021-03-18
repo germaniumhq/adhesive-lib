@@ -55,7 +55,7 @@ tools = {
 
     "version-manager": textwrap.dedent("""\
         FROM germaniumhq/python:3.8
-        RUN pip install vm==2021.03.5
+        RUN pip install vm==2021.3.7
     """)
 }
 
@@ -65,8 +65,6 @@ def ensure_tooling(context, tool_name) -> None:
 
     if tool_name == "flake8":
         LOG.warning("flake8 is deprecated as a tool. Use black.")
-
-    print(f"Tool docker: {tools[tool_name]}")
 
     with w.temp_folder():
         w.write_file("Dockerfile", tools[tool_name])

@@ -1,4 +1,4 @@
 version-manager:
-  version: "root:tools/version-manager@latest"
+  version: "parent:../../tools/version-manager@latest"
   files:
     ge_tooling.py: 'RUN pip install vm==**VERSION$$'
