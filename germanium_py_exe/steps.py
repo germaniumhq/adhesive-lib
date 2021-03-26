@@ -5,6 +5,7 @@ import adhesive
 from adhesive import scm
 from adhesive.secrets import secret
 from adhesive.workspace import docker
+from cached_task import cached
 
 import gbs
 import ge_git
@@ -16,22 +17,22 @@ sources_folder = ge_git.find_parent_git_folder(current_folder)
 
 
 @adhesive.task('Prepare build')
-def prepare_build(context):
+def prepare_build(context: adhesive.Token[PipelineToken]):
     pass
 
 
 @adhesive.task('Checkout Code')
-def checkout_code(context):
+def checkout_code(context: adhesive.Token[PipelineToken]):
     scm.checkout(context.workspace)
 
 
 @adhesive.task(re='Ensure tool: (.*)')
-def ensure_tool(context, tool_name: str) -> None:
+def ensure_tool(context: adhesive.Token[PipelineToken], tool_name: str) -> None:
     ge_tooling.ensure_tooling(context, tool_name)
 
 
 @adhesive.task('Run tool: version-manager')
-def run_tool_version_manager(context):
+def run_tool_version_manager(context: adhesive.Token[PipelineToken]):
     ge_tooling.run_tool(
         context,
         tool="version-manager",
@@ -41,14 +42,26 @@ def run_tool_version_manager(context):
 
 
 @adhesive.task('Run flake8')
-def run_flake8(context):
+@cached(
+    inputs=[
+        "**/*.py",
+    ]
+)
+def run_flake8(context: adhesive.Token[PipelineToken]):
     ge_tooling.run_tool(context, tool="flake8", command=f"""
         flake8 .
     """)
 
 
 @adhesive.task('Run mypy')
-def run_mypy(context):
+@cached(
+    inputs=[
+        "**/*.py",
+        "**/*.pyi",
+        "!*.py",  # no setup.py, _adhesive.py from the root folder
+    ]
+)
+def run_mypy(context: adhesive.Token[PipelineToken]):
     # the shadow-file is a W/A (hack) so we don't get to mypy the
     # _adhesive build itself, since that would be checked by adhesive
     # itself
@@ -59,14 +72,21 @@ def run_mypy(context):
 
 
 @adhesive.task('Run black')
-def run_black(context):
+@cached(
+    inputs=[
+        "**/*.py",
+    ]
+)
+def run_black(context: adhesive.Token[PipelineToken]):
     ge_tooling.run_tool(context, tool="black", command="""
         black --check .
     """)
 
 
 @adhesive.task('GBS Test {loop.value.name}')
-def gbs_test(context: adhesive.Token):
+def gbs_test(context: adhesive.Token[PipelineToken]):
+    # FIXME: all this should be removed/refactored, since it makes
+    #        no sense to build a test container anymore.
     binary: BinaryDefinition = context.loop.value
     image_name = gbs.test(context,
                           platform=binary.platform)
@@ -82,7 +102,10 @@ def gbs_test(context: adhesive.Token):
 
 
 @adhesive.task('GBS Build {loop.value.name}')
-def gbs_build(context):
+def gbs_build(context: adhesive.Token[PipelineToken]):
+    # FIXME: remove, and get the build script either in a python file,
+    #        leave some steps not implemented, or simply standardize
+    #        what a build is.
     binary: BinaryDefinition = context.loop.value
     binary.docker_image = gbs.build(context, platform=binary.platform)
 
@@ -118,13 +141,17 @@ def is_release_version_(context: adhesive.Token[PipelineToken]):
 
 
 @adhesive.task('Find published binaries')
-def find_published_binaries(context):
+def find_published_binaries(context: adhesive.Token[PipelineToken]):
     context.data.published_binaries = [
             binary for binary in context.data.build.binaries if binary.publish_pypi ]
 
 
 @adhesive.task(re='Publish on (.*)$')
-def publish_on_nexus(context, registry):
+@cached(params=[
+    "args[0].data.release_version",
+    "args[1]",
+])
+def publish_on_nexus(context: adhesive.Token[PipelineToken], registry):
     if registry not in {'pypitest', 'pypimain', 'nexus', 'pypi'}:
         raise Exception("You need to pass a server from pypitest, pypimain or nexus")
 
@@ -152,7 +179,7 @@ def publish_on_nexus(context, registry):
 
 
 @adhesive.task('Publish binary on germaniumhq.com')
-def publish_binary_on_germaniumhq_com(context):
+def publish_binary_on_germaniumhq_com(context: adhesive.Token[PipelineToken]):
     raise Exception("not implemented")
 
 
@@ -170,7 +197,7 @@ def parse_url(url: str) -> str:
 
 
 @adhesive.task('Push sources + tags to {loop.value}')
-def push_sources_tags_to_loop_value_(context):
+def push_sources_tags_to_loop_value_(context: adhesive.Token[PipelineToken]):
     print("remove me")
     return
 
