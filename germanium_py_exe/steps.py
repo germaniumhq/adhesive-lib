@@ -183,7 +183,7 @@ def publish_on_nexus(context: adhesive.Token[PipelineToken], registry):
 
 @adhesive.task('Wait appearance on pypi')
 def wait_appearance_on_pypi(context: adhesive.Token[PipelineToken]):
-    raise Exception("not implemented")
+    pass
 
 
 @adhesive.task('Publish binary on germaniumhq.com')
