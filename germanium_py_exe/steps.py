@@ -14,6 +14,7 @@ from germanium_py_exe.pipeline_types import BinaryDefinition, PipelineToken
 
 current_folder = os.path.abspath(os.curdir)
 sources_folder = ge_git.find_parent_git_folder(current_folder)
+project_name = os.path.dirname(current_folder)
 
 
 @adhesive.task('Prepare build')
@@ -150,6 +151,8 @@ def find_published_binaries(context: adhesive.Token[PipelineToken]):
 @cached(params=[
     "args[0].data.release_version",
     "args[1]",
+    "args[0].loop.value['name']",  # it loops over a binary definition
+    f"'{project_name}'",
 ])
 def publish_on_nexus(context: adhesive.Token[PipelineToken], registry):
     if registry not in {'pypitest', 'pypimain', 'nexus', 'pypi'}:
@@ -176,6 +179,11 @@ def publish_on_nexus(context: adhesive.Token[PipelineToken], registry):
                 """)
             else:
                 raise Exception("Publishing can only be sdist or bdist")
+
+
+@adhesive.task('Wait appearance on pypi')
+def wait_appearance_on_pypi(context: adhesive.Token[PipelineToken]):
+    raise Exception("not implemented")
 
 
 @adhesive.task('Publish binary on germaniumhq.com')
