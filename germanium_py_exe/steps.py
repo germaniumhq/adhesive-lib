@@ -198,7 +198,7 @@ def wait_appearance_on_pypi(context: adhesive.Token[PipelineToken]):
     binary_definition: BinaryDefinition = context.loop.value
     tries = 0
 
-    with docker.inside(context, image_name=binary_definition.platform) as docker_workspace:
+    with docker.inside(context.workspace, image_name=binary_definition.platform) as docker_workspace:
         for _ in context.data.published_binaries:
             try:
                 # we go first to /tmp so we don't match the package in the current folder
