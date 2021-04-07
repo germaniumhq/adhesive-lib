@@ -19,6 +19,11 @@ class PipelineConfigRequired(TypedDict):
 
 
 class PipelineConfig(PipelineConfigRequired, total=False):
+    # the name and the version are read using distutils.core
+    name: str
+    version: str
+
+    # the rest are passed from the build configuration
     run_flake8: bool
     run_mypy: bool
     run_black: bool

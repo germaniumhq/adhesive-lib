@@ -1,5 +1,7 @@
 import os
 import re
+import time
+from distutils.core import run_setup
 
 import adhesive
 from adhesive import scm
@@ -14,7 +16,6 @@ from germanium_py_exe.pipeline_types import BinaryDefinition, PipelineToken
 
 current_folder = os.path.abspath(os.curdir)
 sources_folder = ge_git.find_parent_git_folder(current_folder)
-project_name = os.path.dirname(current_folder)
 
 
 @adhesive.task('Prepare build')
@@ -84,6 +85,13 @@ def run_black(context: adhesive.Token[PipelineToken]):
     """)
 
 
+@adhesive.task('Read Package Metadata')
+def read_package_metadata(context: adhesive.Token[PipelineToken]) -> None:
+    package_metadata = run_setup("setup.py", stop_after="init")
+    context.data.build.name = package_metadata.get_name()
+    context.data.build.version = package_metadata.get_version()
+
+
 @adhesive.task('GBS Test {loop.value.name}')
 def gbs_test(context: adhesive.Token[PipelineToken]):
     # FIXME: all this should be removed/refactored, since it makes
@@ -149,10 +157,9 @@ def find_published_binaries(context: adhesive.Token[PipelineToken]):
 
 @adhesive.task(re='Publish on (.*)$')
 @cached(params=[
-    "args[0].data.release_version",
+    "args[0].data.build.name",
     "args[1]",
     "args[0].loop.value['name']",  # it loops over a binary definition
-    f"'{project_name}'",
 ])
 def publish_on_nexus(context: adhesive.Token[PipelineToken], registry):
     if registry not in {'pypitest', 'pypimain', 'nexus', 'pypi'}:
@@ -182,8 +189,30 @@ def publish_on_nexus(context: adhesive.Token[PipelineToken], registry):
 
 
 @adhesive.task('Wait appearance on pypi')
+@cached(params=[
+    "args[0].data.build.name",
+    "args[0].data.build.version",
+    "args[0].loop.value['name']",  # it loops over a binary definition
+])
 def wait_appearance_on_pypi(context: adhesive.Token[PipelineToken]):
-    pass
+    binary_definition: BinaryDefinition = context.loop.value
+    tries = 0
+
+    with docker.inside(context, image_name=binary_definition.platform) as docker_workspace:
+        for _ in context.data.published_binaries:
+            try:
+                # we go first to /tmp so we don't match the package in the current folder
+                docker_workspace.run(f"""
+                    cd /tmp
+                    pip install {context.data.build.name}=={context.data.build.version}
+                """)
+                break
+            except Exception as e:
+                time.sleep(2)
+                tries += 1
+
+                if tries == 5:
+                    raise e
 
 
 @adhesive.task('Publish binary on germaniumhq.com')
