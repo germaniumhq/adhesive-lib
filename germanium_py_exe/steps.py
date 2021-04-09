@@ -203,7 +203,7 @@ def wait_appearance_on_pypi(context: adhesive.Token[PipelineToken]):
             try:
                 # we go first to /tmp so we don't match the package in the current folder
                 docker_workspace.run(f"""
-                    cd /tmp
+                    HOME=$(mktemp -d)
                     pip install {context.data.build.name}=={context.data.build.version}
                 """)
                 break
