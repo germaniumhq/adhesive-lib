@@ -212,7 +212,7 @@ def wait_appearance_on_pypi(context: adhesive.Token[PipelineToken]):
                     time.sleep(2)
                     tries += 1
 
-                    if tries == 10:
+                    if tries == 60:  # roughly 2-3 minutes
                         raise e
 
 
