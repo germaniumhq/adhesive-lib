@@ -196,24 +196,24 @@ def publish_on_nexus(context: adhesive.Token[PipelineToken], registry):
 ])
 def wait_appearance_on_pypi(context: adhesive.Token[PipelineToken]):
     binary_definition: BinaryDefinition = context.loop.value
-    tries = 0
 
     with docker.inside(context.workspace, image_name=binary_definition.platform) as docker_workspace:
         for _ in context.data.published_binaries:
-            try:
-                # we go first to /tmp so we don't match the package in the current folder
-                docker_workspace.run(f"""
-                    set -e
-                    HOME=$(mktemp -d)
-                    pip install {context.data.build.name}=={context.data.build.version}
-                """)
-                break
-            except Exception as e:
-                time.sleep(2)
-                tries += 1
+            tries = 0
+            while True:
+                try:
+                    # we go first to /tmp so we don't match the package in the current folder
+                    docker_workspace.run(f"""
+                        HOME=$(mktemp -d)
+                        pip install {context.data.build.name}=={context.data.build.version}
+                    """)
+                    break
+                except Exception as e:
+                    time.sleep(2)
+                    tries += 1
 
-                if tries == 5:
-                    raise e
+                    if tries == 10:
+                        raise e
 
 
 @adhesive.task('Publish binary on germaniumhq.com')
